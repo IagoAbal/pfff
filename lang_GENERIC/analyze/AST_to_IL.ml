@@ -406,7 +406,12 @@ and expr env eorig =
   | G.MatchPattern (_, _)
   -> todo (G.E eorig)
 
-  | G.Yield (_, _, _)
+  | G.Yield (tok, e_opt, is_from) ->
+    let e' = expr_opt env e_opt in
+    let special = (Yield is_from, tok) in
+    add_instr env (mk_i (CallSpecial (None, special, [e'])) eorig);
+    e'
+
   | G.Await (_, _)
   -> todo (G.E eorig)
   | G.Cast (typ, e) ->

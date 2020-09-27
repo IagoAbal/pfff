@@ -244,7 +244,8 @@ type instr = {
     (* old: better in exp: | Operator of G.arithmetic_operator *)
     | Concat
     | Spread
-    | Yield | Await
+    | Yield of bool (* true = Python's yield from *)
+    | Await
     (* was in stmt before, but with a new clean 'instr' type, better here *)
     | Assert
     (* was in expr before (only in C/PHP) *)
