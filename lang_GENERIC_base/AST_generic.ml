@@ -319,7 +319,7 @@ and id_info = {
   (* sgrep: this is for sgrep constant propagation hack.
    * todo? associate only with Id?
   *)
-  id_constness: constness    option ref;
+  id_constness: constness    option ref; (* THINK: Drop option? *)
 }
 (*e: type [[AST_generic.id_info]] *)
 
