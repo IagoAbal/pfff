@@ -135,6 +135,7 @@ val cmd_to_list_and_status:
 (*s: signature [[Common.null]] *)
 val null : 'a list -> bool
 (*e: signature [[Common.null]] *)
+val hd_opt : 'a list -> 'a option
 (*s: signature [[Common.exclude]] *)
 val exclude : ('a -> bool) -> 'a list -> 'a list
 (*e: signature [[Common.exclude]] *)

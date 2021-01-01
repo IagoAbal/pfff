@@ -31,6 +31,12 @@ module H = AST_generic_helpers
 *)
 
 (*****************************************************************************)
+(* Flags *)
+(*****************************************************************************)
+
+let verbose = ref false
+
+(*****************************************************************************)
 (* Types *)
 (*****************************************************************************)
 (*s: type [[AST_to_IL.env]] *)
@@ -58,9 +64,31 @@ let error tok s =
 (*e: function [[AST_to_IL.error]] *)
 
 (*s: function [[AST_to_IL.warning]] *)
-let warning tok s =
-  pr2 (spf "%s: %s" (Parse_info.string_of_info tok) s)
+let warning opt_tok s =
+  let opt_loc =
+    try
+      map_opt Parse_info.string_of_info opt_tok
+    with Parse_info.NoTokenLocation _ ->
+      None
+  in
+  match opt_loc with
+  | Some loc -> pr2 (spf "%s: %s" loc s)
+  | None     -> pr2 s
 (*e: function [[AST_to_IL.warning]] *)
+
+let warn_once =
+  let warned = Hashtbl.create 2 in
+  fun opt_tok s ->
+    let m = (opt_tok, s) in
+    if not (Hashtbl.mem warned m) then
+      begin
+        Hashtbl.add warned m ();
+        warning opt_tok s
+      end
+
+let warn_once_if_verbose opt_tok s =
+  if !verbose then
+    warn_once opt_tok s
 
 (*s: function [[AST_to_IL.error_any]] *)
 let error_any any_generic msg =
@@ -86,15 +114,12 @@ let impossible any_generic =
   error_any any_generic "Impossible Construct"
 (*e: function [[AST_to_IL.impossible]] *)
 
-
 let todo_warning gany =
   let toks = Lib_AST.ii_of_any gany in
   let msg = spf
-      "Unsupported construct may affect the accuracy of dataflow analyses" in
-  try
-    warning (List.hd toks) msg
-  with Parse_info.NoTokenLocation _ ->
-    pr2 msg
+      "Unsupported construct(s) may affect the accuracy of dataflow analyses" in
+  let opt_tok = if !verbose then hd_opt toks else None in
+  warn_once_if_verbose opt_tok msg
 
 let exp_todo gany eorig =
   todo_warning (G.E eorig);
@@ -134,7 +159,9 @@ let lval_of_id_info _env id id_info =
     match !(id_info.G.id_resolved) with
     | Some (_resolved, sid) -> sid
     | None ->
-        warning (snd id) (spf "the ident '%s' is not resolved" (fst id));
+        let id_str, id_tok = id in
+        let msg = spf "the ident '%s' is not resolved" id_str in
+        warn_once_if_verbose (Some id_tok) msg;
         -1
   in
   let var = id, sid in

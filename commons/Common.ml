@@ -1173,6 +1173,10 @@ let rec zip xs ys =
 let null xs =
   match xs with [] -> true | _ -> false
 
+let hd_opt = function
+  | []   -> None
+  | x::_ -> Some x
+
 let index_list xs =
   if null xs then [] (* enum 0 (-1) generate an exception *)
   else zip xs (enum 0 ((List.length xs) -1))
