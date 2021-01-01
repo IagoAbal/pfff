@@ -313,6 +313,12 @@ and expr_aux env eorig =
   | G.Call (G.IdSpecial (G.Op op, tok), args) ->
       let args = arguments env args in
       mk_e (Operator ((op, tok), args)) eorig
+  | G.Call (G.IdSpecial ((G.This | G.Super | G.Self | G.Parent), tok) as f, args) ->
+      let lval = fresh_lval env tok in
+      let fexp = expr env f in
+      let args = arguments env args in
+      add_instr env (mk_i (Call (Some lval, fexp, args)) eorig);
+      mk_e (Lvalue lval) eorig
   | G.Call (G.IdSpecial (G.IncrDecr (incdec, _prepostIGNORE), tok), args) ->
       (* in theory in expr() we should return each time a list of pre-instr
        * and a list of post-instrs to execute before and after the use
